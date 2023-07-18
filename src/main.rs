@@ -42,18 +42,17 @@ async fn main() {
             (days, hours % 24)
         };
 
-        // TODO: Reliably get ip address without triggering rate limit
-        // let ip_address = match reqwest::get("https://ifconfig.co/json").await {
-        //     Err(e) => Err(e),
-        //     Ok(response) => Ok(response.text().await.unwrap()),
-        // };
+        let ip_address = match reqwest::get("https://api.ipify.org").await {
+            Err(_) => "Error obtaining IP address".to_string(),
+            Ok(response) => response.text().await.unwrap(),
+        };
 
         let body = format!(
             r#"Internet is UP for host {hostname},
 current time is: {current_time}
 canary start time is: {start_time}
 host uptime is: {uptime_days}d {uptime_hours}h
-ip address is: {{ip_address:?}}
+ip address is: {ip_address}
 "#,
         );
 
