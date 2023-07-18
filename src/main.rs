@@ -50,7 +50,7 @@ async fn main() {
         };
 
         let body = format!(
-            r#"Internet is UP for host {hostname}
+            r#"<h2>Internet is UP for host {hostname}</h2>
 
 <table>
 <tr>
