@@ -1,3 +1,9 @@
+use std::path::PathBuf;
+
+use clap::{
+    builder::{RangedU64ValueParser, TypedValueParser},
+    Parser,
+};
 use lettre::{
     message::{header::ContentType, Mailbox},
     transport::smtp::AsyncSmtpTransport,
@@ -12,26 +18,73 @@ struct Credentials {
     password: String,
 }
 
+#[derive(Clone)]
+struct DurationAsMinutes(time::Duration);
+
+impl DurationAsMinutes {
+    fn new(minutes: u64) -> Self {
+        Self(time::Duration::from_secs(60 * minutes))
+    }
+}
+
+impl clap::builder::ValueParserFactory for DurationAsMinutes {
+    type Parser = clap::builder::ValueParser;
+
+    fn value_parser() -> Self::Parser {
+        RangedU64ValueParser::new().range(1..).map(Self::new).into()
+    }
+}
+
+#[derive(Parser)]
+struct RunCanary {
+    #[arg(
+        default_value = "credentials.json",
+        short,
+        long,
+        help = "should contain username and password for SMTP server",
+        id = "JSON-FILE"
+    )]
+    credentials_path: PathBuf,
+    #[arg(short, long, help = "canary emails are sent from and to this mailbox")]
+    email_address: Mailbox,
+    #[arg(
+        default_value = "5",
+        short,
+        long,
+        help = "interval to wait between consecutive updates",
+        id = "MINUTES"
+    )]
+    interval: DurationAsMinutes,
+    #[arg(short, long, help = "hostname of SMTP server")]
+    smtp_server: String,
+}
+
 #[tokio::main]
 async fn main() {
+    let RunCanary {
+        credentials_path,
+        email_address,
+        interval,
+        smtp_server,
+    } = RunCanary::parse();
+
     let start_time = chrono::Local::now();
 
     let Credentials { username, password } = {
-        let contents = std::fs::read_to_string("credentials.json").unwrap();
+        let contents = std::fs::read_to_string(&credentials_path).unwrap();
         serde_json::from_str(&contents).unwrap()
     };
 
     // Create TLS transport on port 465
-    let sender = AsyncSmtpTransport::<Tokio1Executor>::relay("smtp.fastmail.com")
+    let sender = AsyncSmtpTransport::<Tokio1Executor>::relay(&smtp_server)
         .unwrap()
         .credentials((username, password).into())
         .build();
 
-    let addr: Mailbox = "admin <admin@bcc32.com>".parse().unwrap();
     let hostname = hostname::get().unwrap().into_string().unwrap();
     let subject = format!("Internet connection canary message from {}", hostname);
 
-    let mut interval = time::interval(time::Duration::from_secs(5 * 60));
+    let mut interval = time::interval(interval.0);
     loop {
         interval.tick().await;
 
@@ -76,9 +129,9 @@ async fn main() {
         eprintln!("Sending email with body...\n{}\n\n", body);
 
         let email = Message::builder()
-            .from(addr.clone())
-            .reply_to(addr.clone())
-            .to(addr.clone())
+            .from(email_address.clone())
+            .reply_to(email_address.clone())
+            .to(email_address.clone())
             .subject(&subject)
             .header(ContentType::TEXT_HTML)
             .body(body)
