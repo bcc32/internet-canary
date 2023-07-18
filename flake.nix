@@ -16,18 +16,16 @@
         naersk-lib = pkgs.callPackage naersk { };
       in with pkgs; {
         devShell = mkShell {
-          buildInputs = [
-            ed
-            rust-analyzer
-            rust-bin.beta.latest.default
-            darwin.apple_sdk.frameworks.Security
-          ];
+          buildInputs = [ ed rust-analyzer rust-bin.beta.latest.default ]
+            ++ (lib.optional stdenv.isDarwin
+              darwin.apple_sdk.frameworks.Security);
           RUST_SRC_PATH = rustPlatform.rustLibSrc;
         };
 
         defaultPackage = naersk-lib.buildPackage {
           src = ./.;
-          buildInputs = [ darwin.apple_sdk.frameworks.Security ];
+          buildInputs =
+            lib.optional stdenv.isDarwin darwin.apple_sdk.frameworks.Security;
         };
       });
 }
