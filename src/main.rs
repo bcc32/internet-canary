@@ -1,5 +1,7 @@
 use lettre::{
-    message::Mailbox, transport::smtp::AsyncSmtpTransport, AsyncTransport, Message, Tokio1Executor,
+    message::{header::ContentType, Mailbox},
+    transport::smtp::AsyncSmtpTransport,
+    AsyncTransport, Message, Tokio1Executor,
 };
 use serde::{Deserialize, Serialize};
 use tokio::time;
@@ -48,11 +50,26 @@ async fn main() {
         };
 
         let body = format!(
-            r#"Internet is UP for host {hostname},
-current time is: {current_time}
-canary start time is: {start_time}
-host uptime is: {uptime_days}d {uptime_hours}h
-ip address is: {ip_address}
+            r#"Internet is UP for host {hostname}
+
+<table>
+<tr>
+<td>Current time</td>
+<td>{current_time}</td>
+</tr>
+<tr>
+<td>Canary start time</td>
+<td>{start_time}</td>
+</tr>
+<tr>
+<td>Host uptime</td>
+<td>{uptime_days}d {uptime_hours}h</td>
+</tr>
+<tr>
+<td>IP address</td>
+<td>{ip_address}</td>
+</tr>
+</table>
 "#,
         );
 
@@ -63,6 +80,7 @@ ip address is: {ip_address}
             .reply_to(addr.clone())
             .to(addr.clone())
             .subject(&subject)
+            .header(ContentType::TEXT_HTML)
             .body(body)
             .unwrap();
 
