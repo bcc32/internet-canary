@@ -42,10 +42,16 @@ struct RunCanary {
         short,
         long,
         help = "should contain username and password for SMTP server",
-        id = "JSON-FILE"
+        id = "JSON-FILE",
+        env = "INTERNET_CANARY_CREDENTIALS_FILE"
     )]
     credentials_path: PathBuf,
-    #[arg(short, long, help = "canary emails are sent from and to this mailbox")]
+    #[arg(
+        short,
+        long,
+        help = "canary emails are sent from and to this mailbox",
+        env = "INTERNET_CANARY_EMAIL"
+    )]
     email_address: Mailbox,
     #[arg(
         default_value = "5",
@@ -55,7 +61,12 @@ struct RunCanary {
         id = "MINUTES"
     )]
     interval: DurationAsMinutes,
-    #[arg(short, long, help = "hostname of SMTP server")]
+    #[arg(
+        short,
+        long,
+        help = "hostname of SMTP server",
+        env = "INTERNET_CANARY_SMTP_SERVER"
+    )]
     smtp_server: String,
 }
 
