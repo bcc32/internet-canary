@@ -15,13 +15,13 @@
         pkgs = import nixpkgs { inherit system overlays; };
         naersk-lib = pkgs.callPackage naersk { };
       in with pkgs; rec {
-        devShell = mkShell {
+        devShells.default = mkShell {
           buildInputs = [ ed rust-analyzer rust-bin.beta.latest.default ]
-            ++ defaultPackage.buildInputs;
+            ++ packages.default.buildInputs;
           RUST_SRC_PATH = rustPlatform.rustLibSrc;
         };
 
-        defaultPackage = naersk-lib.buildPackage {
+        packages.default = naersk-lib.buildPackage {
           src = ./.;
           buildInputs =
             lib.optional stdenv.isDarwin darwin.apple_sdk.frameworks.Security
