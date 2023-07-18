@@ -66,7 +66,12 @@ ip address is: {{ip_address:?}}
             .unwrap();
 
         // Send the email via remote relay
-        let result = sender.send(&email);
-        result.unwrap();
+        let result = sender.send(&email).unwrap();
+        if !result.is_positive() {
+            eprintln!("Error sending email:");
+            for line in result.message() {
+                eprintln!("{line}");
+            }
+        }
     }
 }
