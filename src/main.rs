@@ -1,4 +1,6 @@
-use lettre::{message::Mailbox, Message, SmtpTransport, Transport};
+use lettre::{
+    message::Mailbox, transport::smtp::AsyncSmtpTransport, AsyncTransport, Message, Tokio1Executor,
+};
 use serde::{Deserialize, Serialize};
 use tokio::time;
 
@@ -18,7 +20,7 @@ async fn main() {
     };
 
     // Create TLS transport on port 465
-    let sender = SmtpTransport::relay("smtp.fastmail.com")
+    let sender = AsyncSmtpTransport::<Tokio1Executor>::relay("smtp.fastmail.com")
         .unwrap()
         .credentials((username, password).into())
         .build();
@@ -66,7 +68,7 @@ ip address is: {{ip_address:?}}
             .unwrap();
 
         // Send the email via remote relay
-        let result = sender.send(&email).unwrap();
+        let result = sender.send(email).await.unwrap();
         if !result.is_positive() {
             eprintln!("Error sending email:");
             for line in result.message() {
