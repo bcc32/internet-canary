@@ -1,4 +1,4 @@
-use std::path::PathBuf;
+use std::{path::PathBuf, time};
 
 use clap::{
     builder::{RangedU64ValueParser, TypedValueParser},
@@ -6,11 +6,10 @@ use clap::{
 };
 use lettre::{
     message::{header::ContentType, Mailbox},
-    transport::smtp::AsyncSmtpTransport,
-    AsyncTransport, Message, Tokio1Executor,
+    transport::smtp::SmtpTransport,
+    Message, Transport,
 };
 use serde::{Deserialize, Serialize};
-use tokio::time;
 
 #[derive(Deserialize, Serialize)]
 struct Credentials {
@@ -70,12 +69,11 @@ struct RunCanary {
     smtp_server: String,
 }
 
-#[tokio::main]
-async fn main() {
+fn main() {
     let RunCanary {
         credentials_path,
         email_address,
-        interval,
+        interval: DurationAsMinutes(interval),
         smtp_server,
     } = RunCanary::parse();
 
@@ -87,7 +85,7 @@ async fn main() {
     };
 
     // Create TLS transport on port 465
-    let sender = AsyncSmtpTransport::<Tokio1Executor>::relay(&smtp_server)
+    let sender = SmtpTransport::relay(&smtp_server)
         .unwrap()
         .credentials((username, password).into())
         .build();
@@ -95,10 +93,7 @@ async fn main() {
     let hostname = hostname::get().unwrap().into_string().unwrap();
     let subject = format!("Internet connection canary message from {}", hostname);
 
-    let mut interval = time::interval(interval.0);
     loop {
-        interval.tick().await;
-
         let current_time = chrono::Local::now();
         let (uptime_days, uptime_hours) = {
             let uptime = uptime_lib::get().unwrap();
@@ -150,12 +145,14 @@ async fn main() {
             .unwrap();
 
         // Send the email via remote relay
-        let result = sender.send(email).await.unwrap();
+        let result = sender.send(&email).unwrap();
         if !result.is_positive() {
             eprintln!("Error sending email:");
             for line in result.message() {
                 eprintln!("{line}");
             }
         }
+
+        std::thread::sleep(interval)
     }
 }
