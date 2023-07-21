@@ -35,6 +35,11 @@ impl clap::builder::ValueParserFactory for DurationAsMinutes {
 }
 
 #[derive(Parser)]
+/// Start an Internet Canary, a process that periodically emails a specific
+/// address to report the (outbound) Internet connectivity status of the host.
+///
+/// This can be useful to help diagnose issues on servers you do not have
+/// immediate physical access to.
 struct RunCanary {
     #[arg(
         default_value = "credentials.json",
