@@ -108,10 +108,11 @@ async fn main() {
             (days, hours % 24)
         };
 
-        let ip_address = match reqwest::get("https://api.ipify.org").await {
-            Err(_) => "Error obtaining IP address".to_string(),
-            Ok(response) => response.text().await.unwrap(),
-        };
+        let ip_address = ureq::get("https://api.ipify.org")
+            .call()
+            .map_err(|_| ())
+            .and_then(|r| r.into_string().map_err(|_| ()))
+            .unwrap_or_else(|()| "Error obtaining IP address".to_string());
 
         let body = format!(
             r#"<h2>Internet is UP for host {hostname}</h2>
