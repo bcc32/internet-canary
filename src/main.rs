@@ -96,7 +96,7 @@ fn main() {
         .build();
 
     let hostname = hostname::get().unwrap().into_string().unwrap();
-    let subject = format!("Internet connection canary message from {}", hostname);
+    let subject = format!("Internet connection canary message from {hostname}");
 
     loop {
         let current_time = chrono::Local::now();
@@ -138,7 +138,7 @@ fn main() {
 "#,
         );
 
-        eprintln!("Sending email with body...\n{}\n\n", body);
+        eprintln!("Sending email with body...\n{body}\n\n");
 
         let email = Message::builder()
             .from(email_address.clone())
@@ -158,6 +158,6 @@ fn main() {
             }
         }
 
-        std::thread::sleep(interval)
+        std::thread::sleep(interval);
     }
 }
