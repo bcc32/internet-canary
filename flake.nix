@@ -19,7 +19,6 @@
           buildInputs = [
             cargo-outdated
             cargo-udeps
-            ed
             rust-analyzer
             rust-bin.beta.latest.default
           ] ++ packages.default.buildInputs;
