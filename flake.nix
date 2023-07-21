@@ -16,8 +16,13 @@
         naersk-lib = pkgs.callPackage naersk { };
       in with pkgs; rec {
         devShells.default = mkShell {
-          buildInputs = [ ed rust-analyzer rust-bin.beta.latest.default ]
-            ++ packages.default.buildInputs;
+          buildInputs = [
+            cargo-outdated
+            cargo-udeps
+            ed
+            rust-analyzer
+            rust-bin.beta.latest.default
+          ] ++ packages.default.buildInputs;
           RUST_SRC_PATH = rustPlatform.rustLibSrc;
         };
 
