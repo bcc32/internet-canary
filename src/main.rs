@@ -150,11 +150,17 @@ fn main() {
             .unwrap();
 
         // Send the email via remote relay
-        let result = sender.send(&email).unwrap();
-        if !result.is_positive() {
-            eprintln!("Error sending email:");
-            for line in result.message() {
-                eprintln!("{line}");
+        match sender.send(&email) {
+            Ok(response) => {
+                if !response.is_positive() {
+                    eprintln!("Error from SMTP server:");
+                    for line in response.message() {
+                        eprintln!("{line}");
+                    }
+                }
+            }
+            Err(e) => {
+                eprintln!("Error sending email: {e:?}");
             }
         }
 
