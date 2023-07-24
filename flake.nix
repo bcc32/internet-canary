@@ -12,15 +12,16 @@
       let
         overlays = [ rust-overlay.overlays.default ];
         pkgs = import nixpkgs { inherit system overlays; };
-        naersk-lib = pkgs.callPackage naersk { };
+        rust-bin = pkgs.rust-bin.stable.latest;
+        naersk-lib = pkgs.callPackage naersk {
+          cargo = rust-bin.minimal;
+          rustc = rust-bin.minimal;
+        };
       in with pkgs; rec {
         devShells.default = mkShell {
-          buildInputs = [
-            cargo-outdated
-            cargo-udeps
-            rust-analyzer
-            rust-bin.beta.latest.default
-          ] ++ packages.default.buildInputs;
+          buildInputs =
+            [ cargo-outdated cargo-udeps rust-analyzer rust-bin.default ]
+            ++ packages.default.buildInputs;
           RUST_SRC_PATH = rustPlatform.rustLibSrc;
         };
 
