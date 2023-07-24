@@ -85,7 +85,9 @@ fn main() {
     let start_time = chrono::Local::now();
 
     let Credentials { username, password } = {
-        let contents = std::fs::read_to_string(&credentials_path).unwrap();
+        let contents = std::fs::read_to_string(&credentials_path).unwrap_or_else(|e| {
+            panic!("Could not read credentials from {credentials_path:?}: {e:?}")
+        });
         serde_json::from_str(&contents).unwrap()
     };
 
