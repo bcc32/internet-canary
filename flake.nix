@@ -20,8 +20,13 @@
       in with pkgs; rec {
         devShells.default = mkShell {
           buildInputs =
-            [ cargo-outdated cargo-udeps rust-analyzer rust-bin.default ]
+            [ cargo-outdated rust-analyzer rust-bin.default ]
             ++ packages.default.buildInputs;
+          RUST_SRC_PATH = rustPlatform.rustLibSrc;
+        };
+
+        devShells.udeps = mkShell {
+          buildInputs = [ cargo-udeps pkgs.rust-bin.nightly.latest.default ];
           RUST_SRC_PATH = rustPlatform.rustLibSrc;
         };
 
