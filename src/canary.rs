@@ -57,7 +57,7 @@ fn send_email(
         .from(email_address.clone())
         .reply_to(email_address.clone())
         .to(email_address.clone())
-        .subject(&subject)
+        .subject(subject)
         .header(ContentType::TEXT_HTML)
         .body(body)
         .unwrap();
