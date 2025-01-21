@@ -1,4 +1,4 @@
-mod canary;
+mod email_canary;
 
 use std::{path::PathBuf, time};
 
@@ -38,7 +38,7 @@ impl clap::builder::ValueParserFactory for DurationAsMinutes {
 ///
 /// This can be useful to help diagnose issues on servers you do not have
 /// immediate physical access to.
-struct RunCanary {
+struct RunEmailCanary {
     #[arg(
         default_value = "credentials.json",
         short,
@@ -72,14 +72,14 @@ struct RunCanary {
     smtp_server: String,
 }
 
-fn main() {
-    let RunCanary {
+fn run_email_canary(
+    RunEmailCanary {
         credentials_path,
         email_address,
         interval: DurationAsMinutes(interval),
         smtp_server,
-    } = RunCanary::parse();
-
+    }: RunEmailCanary,
+) {
     let sender = {
         let Credentials { username, password } = {
             let contents = std::fs::read_to_string(&credentials_path).unwrap_or_else(|e| {
@@ -95,5 +95,10 @@ fn main() {
             .build()
     };
 
-    canary::run_forever(&sender, &email_address, interval);
+    email_canary::run_forever(&sender, &email_address, interval);
+}
+
+fn main() {
+    let config = RunEmailCanary::parse();
+    run_email_canary(config);
 }
