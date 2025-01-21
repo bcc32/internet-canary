@@ -1,10 +1,17 @@
+mod discord_canary;
 mod email_canary;
+mod info;
 
-use std::{path::PathBuf, time};
+use std::{
+    fs,
+    path::PathBuf,
+    thread::{self, JoinHandle},
+    time,
+};
 
 use clap::{
     builder::{RangedU64ValueParser, TypedValueParser},
-    Parser,
+    command, Parser,
 };
 use lettre::{message::Mailbox, transport::smtp::SmtpTransport};
 use serde::{Deserialize, Serialize};
@@ -33,8 +40,9 @@ impl clap::builder::ValueParserFactory for DurationAsMinutes {
 }
 
 #[derive(Parser)]
-/// Start an Internet Canary, a process that periodically emails a specific
-/// address to report the (outbound) Internet connectivity status of the host.
+/// Start an email Internet Canary, a process that periodically emails a
+/// specific address to report the (outbound) Internet connectivity status of
+/// the host.
 ///
 /// This can be useful to help diagnose issues on servers you do not have
 /// immediate physical access to.
@@ -79,7 +87,7 @@ fn run_email_canary(
         interval: DurationAsMinutes(interval),
         smtp_server,
     }: RunEmailCanary,
-) {
+) -> JoinHandle<()> {
     let sender = {
         let Credentials { username, password } = {
             let contents = std::fs::read_to_string(&credentials_path).unwrap_or_else(|e| {
@@ -95,10 +103,52 @@ fn run_email_canary(
             .build()
     };
 
-    email_canary::run_forever(&sender, &email_address, interval);
+    thread::spawn(move || {
+        email_canary::run_forever(&sender, &email_address, interval);
+    })
+}
+
+#[derive(Parser)]
+/// Start a Discord Internet Canary, a process that maintains a Discord bot in
+/// some channel, whose status is updated to report the (outbound) Internet
+/// connectivity status of the host.
+///
+/// This can be useful to help diagnose issues on servers you do not have
+/// immediate physical access to.
+struct RunDiscordCanary {
+    #[arg(
+        default_value = "token.txt",
+        short,
+        long,
+        help = "should contain username and password for SMTP server",
+        id = "TOKEN-FILE",
+        env = "INTERNET_CANARY_DISCORD_TOKEN_FILE"
+    )]
+    token_path: PathBuf,
+}
+
+#[derive(Parser)]
+#[command()]
+enum Main {
+    RunDiscordCanary(RunDiscordCanary),
+    RunEmailCanary(RunEmailCanary),
+}
+
+fn run_discord_canary(RunDiscordCanary { token_path }: RunDiscordCanary) -> JoinHandle<()> {
+    let token = fs::read_to_string(&token_path)
+        .unwrap_or_else(|e| panic!("Could not read token from {token_path:?}: {e}"));
+    thread::spawn(move || discord_canary::run_forever_sync(discord_canary::Config { token }))
 }
 
 fn main() {
-    let config = RunEmailCanary::parse();
-    run_email_canary(config);
+    match Main::parse() {
+        Main::RunDiscordCanary(discord_config) => {
+            let discord_handle = run_discord_canary(discord_config);
+            discord_handle.join().unwrap();
+        }
+        Main::RunEmailCanary(email_config) => {
+            let email_handle = run_email_canary(email_config);
+            email_handle.join().unwrap();
+        }
+    }
 }
