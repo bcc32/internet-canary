@@ -11,9 +11,10 @@ use std::{
 
 use clap::{
     builder::{RangedU64ValueParser, TypedValueParser},
-    command, Parser,
+    Parser,
 };
 use lettre::{message::Mailbox, transport::smtp::SmtpTransport};
+use log::info;
 use serde::{Deserialize, Serialize};
 
 #[derive(Deserialize, Serialize)]
@@ -127,13 +128,6 @@ struct RunDiscordCanary {
     token_path: PathBuf,
 }
 
-#[derive(Parser)]
-#[command()]
-enum Main {
-    RunDiscordCanary(RunDiscordCanary),
-    RunEmailCanary(RunEmailCanary),
-}
-
 fn run_discord_canary(RunDiscordCanary { token_path }: RunDiscordCanary) -> JoinHandle<()> {
     let token = fs::read_to_string(&token_path)
         .unwrap_or_else(|e| panic!("Could not read token from {token_path:?}: {e}"));
@@ -141,14 +135,19 @@ fn run_discord_canary(RunDiscordCanary { token_path }: RunDiscordCanary) -> Join
 }
 
 fn main() {
-    match Main::parse() {
-        Main::RunDiscordCanary(discord_config) => {
-            let discord_handle = run_discord_canary(discord_config);
-            discord_handle.join().unwrap();
-        }
-        Main::RunEmailCanary(email_config) => {
-            let email_handle = run_email_canary(email_config);
-            email_handle.join().unwrap();
-        }
+    env_logger::init();
+    let mut handles = Vec::new();
+    if let Ok(discord_config) = RunDiscordCanary::try_parse() {
+        info!("Running Discord canary");
+        let discord_handle = run_discord_canary(discord_config);
+        handles.push(discord_handle)
+    }
+    if let Ok(email_config) = RunEmailCanary::try_parse() {
+        info!("Running email canary");
+        let email_handle = run_email_canary(email_config);
+        handles.push(email_handle)
+    }
+    for h in handles {
+        h.join().unwrap();
     }
 }
