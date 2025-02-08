@@ -3,7 +3,7 @@ use lettre::{
     message::{header::ContentType, Mailbox},
     Message, SmtpTransport, Transport,
 };
-use log::{error, info};
+use log::{debug, error, info};
 
 fn send_email(
     sender: &SmtpTransport,
@@ -15,7 +15,8 @@ fn send_email(
 
     let body = super::info::current(hostname, start_time);
 
-    info!("Sending email with body...\n{body}\n\n");
+    info!("Sending email to {email_address}");
+    debug!("Email body:\n{body}");
 
     let email = Message::builder()
         .from(email_address.clone())
@@ -30,10 +31,8 @@ fn send_email(
     match sender.send(&email) {
         Ok(response) => {
             if !response.is_positive() {
-                info!("Error from SMTP server:");
-                for line in response.message() {
-                    info!("{line}");
-                }
+                let message = response.message().collect::<Vec<_>>().join("\n");
+                error!("Error from SMTP server:\n{message}");
             }
         }
         Err(e) => {
