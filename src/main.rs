@@ -118,7 +118,6 @@ fn run_email_canary(
 /// immediate physical access to.
 struct RunDiscordCanary {
     #[arg(
-        default_value = "token.txt",
         short,
         long,
         help = "should contain username and password for SMTP server",
