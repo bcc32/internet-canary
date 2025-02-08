@@ -14,7 +14,7 @@ use clap::{
     Parser,
 };
 use lettre::{message::Mailbox, transport::smtp::SmtpTransport};
-use log::info;
+use log::{debug, info};
 use serde::{Deserialize, Serialize};
 
 #[derive(Deserialize, Serialize)]
@@ -136,15 +136,27 @@ fn run_discord_canary(RunDiscordCanary { token_path }: RunDiscordCanary) -> Join
 fn main() {
     env_logger::init();
     let mut handles = Vec::new();
-    if let Ok(discord_config) = RunDiscordCanary::try_parse() {
-        info!("Running Discord canary");
-        let discord_handle = run_discord_canary(discord_config);
-        handles.push(discord_handle)
+    match RunDiscordCanary::try_parse() {
+        Ok(discord_config) => {
+            info!("Running Discord canary");
+            let discord_handle = run_discord_canary(discord_config);
+            handles.push(discord_handle)
+        }
+        Err(e) => {
+            info!("Discord canary not configured; skipping");
+            debug!("Could not configure Discord canary: {e}")
+        }
     }
-    if let Ok(email_config) = RunEmailCanary::try_parse() {
-        info!("Running email canary");
-        let email_handle = run_email_canary(email_config);
-        handles.push(email_handle)
+    match RunEmailCanary::try_parse() {
+        Ok(email_config) => {
+            info!("Running email canary");
+            let email_handle = run_email_canary(email_config);
+            handles.push(email_handle)
+        }
+        Err(e) => {
+            info!("Email canary not configured; skipping");
+            debug!("Could not configure email canary: {e}")
+        }
     }
     for h in handles {
         h.join().unwrap();
