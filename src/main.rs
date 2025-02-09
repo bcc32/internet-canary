@@ -65,7 +65,7 @@ struct RunEmailCanary {
     )]
     email_address: Mailbox,
     #[arg(
-        default_value = "5",
+        default_value = "60",
         short,
         long,
         help = "interval to wait between consecutive updates",
