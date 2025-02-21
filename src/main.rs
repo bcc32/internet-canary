@@ -10,8 +10,8 @@ use std::{
 };
 
 use clap::{
-    builder::{RangedU64ValueParser, TypedValueParser},
     Parser,
+    builder::{RangedU64ValueParser, TypedValueParser},
 };
 use lettre::{message::Mailbox, transport::smtp::SmtpTransport};
 use log::{debug, info};

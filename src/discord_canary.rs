@@ -1,8 +1,8 @@
 use chrono::DateTime;
 use chrono::Local;
+use serenity::Client;
 use serenity::model::prelude::*;
 use serenity::prelude::*;
-use serenity::Client;
 
 struct Handler {
     hostname: String,

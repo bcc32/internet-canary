@@ -1,7 +1,7 @@
 use chrono::{DateTime, Local};
 use lettre::{
-    message::{header::ContentType, Mailbox},
     Message, SmtpTransport, Transport,
+    message::{Mailbox, header::ContentType},
 };
 use log::{debug, error, info};
 
