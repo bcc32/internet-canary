@@ -46,5 +46,5 @@ async fn run_forever(config: Config) -> serenity::Result<()> {
 
 pub fn run_forever_sync(config: Config) {
     let runtime = tokio::runtime::Runtime::new().unwrap();
-    runtime.block_on(run_forever(config)).unwrap()
+    runtime.block_on(run_forever(config)).unwrap();
 }

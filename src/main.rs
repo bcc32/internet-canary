@@ -140,22 +140,22 @@ fn main() {
         Ok(discord_config) => {
             info!("Running Discord canary");
             let discord_handle = run_discord_canary(discord_config);
-            handles.push(discord_handle)
+            handles.push(discord_handle);
         }
         Err(e) => {
             info!("Discord canary not configured; skipping");
-            debug!("Could not configure Discord canary: {e}")
+            debug!("Could not configure Discord canary: {e}");
         }
     }
     match RunEmailCanary::try_parse() {
         Ok(email_config) => {
             info!("Running email canary");
             let email_handle = run_email_canary(email_config);
-            handles.push(email_handle)
+            handles.push(email_handle);
         }
         Err(e) => {
             info!("Email canary not configured; skipping");
-            debug!("Could not configure email canary: {e}")
+            debug!("Could not configure email canary: {e}");
         }
     }
     for h in handles {

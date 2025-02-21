@@ -17,7 +17,7 @@ pub fn current(hostname: &str, start_time: DateTime<Local>) -> String {
         .unwrap_or_else(|()| "Error obtaining IP address".to_string());
 
     format!(
-        r#"<h2>Internet is UP for host {hostname}</h2>
+        r"<h2>Internet is UP for host {hostname}</h2>
 
 <table>
 <tr>
@@ -37,6 +37,6 @@ pub fn current(hostname: &str, start_time: DateTime<Local>) -> String {
 <td>{ip_address}</td>
 </tr>
 </table>
-"#,
+",
     )
 }
