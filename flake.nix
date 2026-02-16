@@ -4,7 +4,10 @@
   inputs = {
     flake-utils.url = "github:numtide/flake-utils";
     naersk.url = "github:nix-community/naersk";
+    naersk.inputs.nixpkgs.follows = "nixpkgs";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     rust-overlay.url = "github:oxalica/rust-overlay";
+    rust-overlay.inputs.nixpkgs.follows = "nixpkgs";
   };
 
   outputs =
@@ -34,7 +37,8 @@
             cargo-outdated
             rust-analyzer
             rust-bin.default
-          ] ++ packages.default.buildInputs;
+          ]
+          ++ packages.default.buildInputs;
           RUST_SRC_PATH = rustPlatform.rustLibSrc;
         };
 
