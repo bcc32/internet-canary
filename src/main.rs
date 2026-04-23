@@ -92,7 +92,10 @@ fn run_email_canary(
     let sender = {
         let Credentials { username, password } = {
             let contents = std::fs::read_to_string(&credentials_path).unwrap_or_else(|e| {
-                panic!("Could not read credentials from {credentials_path:?}: {e:?}")
+                panic!(
+                    "Could not read credentials from {}: {e:?}",
+                    credentials_path.display()
+                )
             });
             serde_json::from_str(&contents).unwrap()
         };
@@ -129,7 +132,7 @@ struct RunDiscordCanary {
 
 fn run_discord_canary(RunDiscordCanary { token_path }: RunDiscordCanary) -> JoinHandle<()> {
     let token = fs::read_to_string(&token_path)
-        .unwrap_or_else(|e| panic!("Could not read token from {token_path:?}: {e}"));
+        .unwrap_or_else(|e| panic!("Could not read token from {}: {e}", token_path.display()));
     thread::spawn(move || discord_canary::run_forever_sync(discord_canary::Config { token }))
 }
 
