@@ -52,8 +52,8 @@
         packages.default = naersk-lib.buildPackage {
           src = ./.;
           buildInputs =
-            lib.optional stdenv.isDarwin darwin.apple_sdk.frameworks.Security
-            ++ lib.optionals stdenv.isLinux [
+            lib.optional stdenv.hostPlatform.isDarwin darwin.apple_sdk.frameworks.Security
+            ++ lib.optionals stdenv.hostPlatform.isLinux [
               openssl
               pkg-config
             ];
