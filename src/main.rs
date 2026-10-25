@@ -14,7 +14,7 @@ use clap::{
     builder::{RangedU64ValueParser, TypedValueParser},
 };
 use lettre::{message::Mailbox, transport::smtp::SmtpTransport};
-use log::{debug, info};
+use log::{debug, error, info};
 use serde::{Deserialize, Serialize};
 
 #[derive(Deserialize, Serialize)]
@@ -160,6 +160,10 @@ fn main() {
             info!("Email canary not configured; skipping");
             debug!("Could not configure email canary: {e}");
         }
+    }
+    if handles.is_empty() {
+        // TODO: It would be better to have --help work properly.
+        error!("No canary types configured");
     }
     for h in handles {
         h.join().unwrap();
