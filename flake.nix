@@ -44,6 +44,7 @@
         devShells.udeps = mkShell {
           buildInputs = [
             cargo-udeps
+            cargo-edit
             pkgs.rust-bin.nightly.latest.default
           ];
           RUST_SRC_PATH = rustPlatform.rustLibSrc;

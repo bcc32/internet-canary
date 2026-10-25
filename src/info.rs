@@ -13,7 +13,7 @@ pub fn current(hostname: &str, start_time: DateTime<Local>) -> String {
     let ip_address = ureq::get("https://api.ipify.org")
         .call()
         .map_err(|_| ())
-        .and_then(|r| r.into_string().map_err(|_| ()))
+        .and_then(|r| r.into_body().read_to_string().map_err(|_| ()))
         .unwrap_or_else(|()| "Error obtaining IP address".to_string());
 
     format!(
